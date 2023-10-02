@@ -30,6 +30,7 @@ public class ProjectEntity {
 
     String description;
 
-    @OneToMany
+    @Builder.Default
+    @OneToMany(fetch = FetchType.LAZY)
     List<TaskStateEntity> taskStates = new ArrayList<>();
 }
