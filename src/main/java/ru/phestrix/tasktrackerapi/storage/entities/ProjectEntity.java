@@ -1,4 +1,4 @@
-package ru.phestrix.tasktrackerapi.entities;
+package ru.phestrix.tasktrackerapi.storage.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,5 +32,6 @@ public class ProjectEntity {
 
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY)
+            @JoinColumn(name = "project_id", referencedColumnName = "id")
     List<TaskStateEntity> taskStates = new ArrayList<>();
 }
