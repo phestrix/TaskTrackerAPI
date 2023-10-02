@@ -4,7 +4,15 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.Instant;
 
+@Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter
+@Setter
 @Table(name = "task")
 public class TaskEntity {
     @Id
@@ -14,4 +22,7 @@ public class TaskEntity {
     @Column(unique = true)
     String name;
     String description;
+
+    @Builder.Default
+    Instant createdAt = Instant.now();
 }
