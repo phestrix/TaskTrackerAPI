@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.1.4'
+    id 'io.spring.dependency-management' version '1.1.3'
+}
+
+group = 'ru.phestrix'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
+repositories {
+    mavenCentral()
+}
+
+//Spring
+dependencies{
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '3.1.4'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '3.1.4'
+
+}
+
+//Lombok
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+//Other
+dependencies {
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.6.0'
+}
+
+//Test
+dependencies {
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
