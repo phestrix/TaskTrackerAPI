@@ -14,6 +14,7 @@ public class ProjectDtoFactory {
                 .id(entity.getId())
                 .name(entity.getName())
                 .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getCreatedAt())
                 .build();
     }
 }
