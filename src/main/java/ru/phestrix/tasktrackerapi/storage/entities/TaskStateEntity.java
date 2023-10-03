@@ -27,7 +27,7 @@ public class TaskStateEntity {
 
     @Builder.Default
     Instant createdAt = Instant.now();
-
+    Long ordinal;
     @OneToMany
     @JoinColumn(name = "task_state_id", referencedColumnName = "id")
     @Builder.Default
