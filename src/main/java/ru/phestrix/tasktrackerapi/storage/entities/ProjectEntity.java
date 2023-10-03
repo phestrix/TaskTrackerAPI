@@ -32,6 +32,6 @@ public class ProjectEntity {
 
     @Builder.Default
     @OneToMany(fetch = FetchType.LAZY)
-            @JoinColumn(name = "project_id", referencedColumnName = "id")
+    @JoinColumn(name = "project_id")
     List<TaskStateEntity> taskStates = new ArrayList<>();
 }

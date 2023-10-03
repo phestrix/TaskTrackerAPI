@@ -19,7 +19,6 @@ public class TaskEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Long Id;
 
-    @Column(unique = true)
     String name;
     String description;
 

@@ -22,14 +22,14 @@ public class TaskStateEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Long id;
 
-    @Column(unique = true)
+
     String name;
 
     @Builder.Default
     Instant createdAt = Instant.now();
 
     @OneToMany
-    @JoinColumn()
+    @JoinColumn(name = "task_state_id", referencedColumnName = "id")
     @Builder.Default
     List<TaskEntity> tasks = new ArrayList<>();
 }
