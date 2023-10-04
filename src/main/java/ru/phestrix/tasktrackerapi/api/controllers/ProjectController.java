@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
+import ru.phestrix.tasktrackerapi.api.controllers.helper.ControllerHelper;
 import ru.phestrix.tasktrackerapi.api.dto.AnswerDTO;
 import ru.phestrix.tasktrackerapi.api.dto.ProjectDTO;
 import ru.phestrix.tasktrackerapi.api.exceptions.NotFoundException;
@@ -27,6 +28,7 @@ public class ProjectController {
 
     ProjectDtoFactory projectDtoFactory;
     ProjectRepository projectRepository;
+    ControllerHelper controllerHelper;
     private static final boolean SUCCESSFUL_DELETION = true;
     private static final boolean DELETION_FAILURE = false;
 
@@ -61,7 +63,7 @@ public class ProjectController {
         boolean isCreate = !optionalProjectId.isPresent();
 
         final ProjectEntity projectEntity = optionalProjectId
-                .map(this::getProjectEntityOrThrowException)
+                .map(controllerHelper::getProjectEntityOrThrowException)
                 .orElseGet(() -> ProjectEntity.builder().build());
 
         if (isCreate && optionalProjectName.isEmpty()) {
@@ -83,14 +85,10 @@ public class ProjectController {
 
     @DeleteMapping(DELETE_PROJECT)
     public AnswerDTO deleteProject(@PathVariable("project_id") Long projectId) {
-        getProjectEntityOrThrowException(projectId);
+        controllerHelper.getProjectEntityOrThrowException(projectId);
         projectRepository.deleteById(projectId);
         return AnswerDTO.makeDefault(SUCCESSFUL_DELETION);
     }
 
-    private ProjectEntity getProjectEntityOrThrowException(Long projectId) {
-        return projectRepository
-                .findById(projectId)
-                .orElseThrow(() -> new NotFoundException("Project with id: " + projectId + "doesnt exist"));
-    }
+
 }
