@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Builder
@@ -27,9 +28,25 @@ public class TaskStateEntity {
 
     @Builder.Default
     Instant createdAt = Instant.now();
+
     Long ordinal;
+
+    @OneToOne
+    TaskStateEntity leftTaskState;
+
+    @OneToOne
+    TaskStateEntity rightTaskState;
+
+
     @OneToMany
     @JoinColumn(name = "task_state_id", referencedColumnName = "id")
-    @Builder.Default
     List<TaskEntity> tasks = new ArrayList<>();
+
+    public Optional<TaskStateEntity> getLeftTaskState() {
+        return Optional.ofNullable(leftTaskState);
+    }
+
+    public Optional<TaskStateEntity> getRightTaskState() {
+        return Optional.ofNullable(rightTaskState);
+    }
 }
