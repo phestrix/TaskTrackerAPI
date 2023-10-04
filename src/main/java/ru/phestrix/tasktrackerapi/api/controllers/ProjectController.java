@@ -75,8 +75,7 @@ public class ProjectController {
             throw new BadRequestException("name cant be empty");
         }
 
-        ProjectEntity project = projectRepository.findById(projectId).orElseThrow(() ->
-                new NotFoundException("Project with id " + projectId + "doesn't exist"));
+        ProjectEntity project = getProjectEntityOrThrowException(projectId);
 
         projectRepository.findProjectEntityByName(name)
                 .filter(anotherProject -> !Objects.equals(anotherProject.getId(), projectId))
@@ -90,10 +89,14 @@ public class ProjectController {
 
     @DeleteMapping(DELETE_PROJECT)
     public AnswerDTO deleteProject(@PathVariable("project_id") Long projectId) {
-        projectRepository
-                .findById(projectId)
-                .orElseThrow(() -> new NotFoundException("Project with id: " + projectId + "doesnt exist"));
+        getProjectEntityOrThrowException(projectId);
         projectRepository.deleteById(projectId);
         return AnswerDTO.makeDefault(SUCCESSFUL_DELETION);
+    }
+
+    private ProjectEntity getProjectEntityOrThrowException(Long projectId) {
+        return projectRepository
+                .findById(projectId)
+                .orElseThrow(() -> new NotFoundException("Project with id: " + projectId + "doesnt exist"));
     }
 }
