@@ -114,4 +114,110 @@ public class TaskStateController {
 
         return taskStateDtoFactory.makeTaskStateDTO(taskState);
     }
+
+    @PatchMapping(CHANGE_TASK_STATE_POSITION)
+    public TaskStateDTO changeTaskStatePosition(
+            @PathVariable(name = "task_state_id") Long taskStateId,
+            @RequestParam(name = "left_task_state_id", required = false) Optional<Long> optionalLeftTaskStateId) {
+
+        TaskStateEntity changeTaskState = controllerHelper.getTaskStateEntityOrThrowException(taskStateId);
+
+        ProjectEntity project = changeTaskState.getProject();
+
+        Optional<Long> optionalOldLeftTaskStateId = changeTaskState
+                .getLeftTaskState()
+                .map(TaskStateEntity::getId);
+
+        if (optionalOldLeftTaskStateId.equals(optionalLeftTaskStateId)) {
+            return taskStateDtoFactory.makeTaskStateDTO(changeTaskState);
+        }
+
+        Optional<TaskStateEntity> optionalNewLeftTaskState = optionalLeftTaskStateId
+                .map(leftTaskStateId -> {
+
+                    if (taskStateId.equals(leftTaskStateId)) {
+                        throw new BadRequestException("Left task state id equals changed task state.");
+                    }
+
+                    TaskStateEntity leftTaskStateEntity = controllerHelper.getTaskStateEntityOrThrowException(leftTaskStateId);
+
+                    if (!project.getId().equals(leftTaskStateEntity.getProject().getId())) {
+                        throw new BadRequestException("Task state position can be changed within the same project.");
+                    }
+
+                    return leftTaskStateEntity;
+                });
+
+        Optional<TaskStateEntity> optionalNewRightTaskState;
+        if (optionalNewLeftTaskState.isEmpty()) {
+
+            optionalNewRightTaskState = project
+                    .getTaskStates()
+                    .stream()
+                    .filter(anotherTaskState -> anotherTaskState.getLeftTaskState().isEmpty())
+                    .findAny();
+        } else {
+
+            optionalNewRightTaskState = optionalNewLeftTaskState
+                    .get()
+                    .getRightTaskState();
+        }
+
+        replaceOldTaskStatePosition(changeTaskState);
+
+        if (optionalNewLeftTaskState.isPresent()) {
+
+            TaskStateEntity newLeftTaskState = optionalNewLeftTaskState.get();
+
+            newLeftTaskState.setRightTaskState(changeTaskState);
+
+            changeTaskState.setLeftTaskState(newLeftTaskState);
+        } else {
+            changeTaskState.setLeftTaskState(null);
+        }
+
+        if (optionalNewRightTaskState.isPresent()) {
+
+            TaskStateEntity newRightTaskState = optionalNewRightTaskState.get();
+
+            newRightTaskState.setLeftTaskState(changeTaskState);
+
+            changeTaskState.setRightTaskState(newRightTaskState);
+        } else {
+            changeTaskState.setRightTaskState(null);
+        }
+
+        changeTaskState = taskStateRepository.saveAndFlush(changeTaskState);
+
+        optionalNewLeftTaskState
+                .ifPresent(taskStateRepository::saveAndFlush);
+
+        optionalNewRightTaskState
+                .ifPresent(taskStateRepository::saveAndFlush);
+
+        return taskStateDtoFactory.makeTaskStateDTO(changeTaskState);
+    }
+
+    private void replaceOldTaskStatePosition(TaskStateEntity changeTaskState) {
+
+        Optional<TaskStateEntity> optionalOldLeftTaskState = changeTaskState.getLeftTaskState();
+        Optional<TaskStateEntity> optionalOldRightTaskState = changeTaskState.getRightTaskState();
+
+        optionalOldLeftTaskState
+                .ifPresent(it -> {
+
+                    it.setRightTaskState(optionalOldRightTaskState.orElse(null));
+
+                    taskStateRepository.saveAndFlush(it);
+                });
+
+        optionalOldRightTaskState
+                .ifPresent(it -> {
+
+                    it.setLeftTaskState(optionalOldLeftTaskState.orElse(null));
+
+                    taskStateRepository.saveAndFlush(it);
+                });
+    }
+
 }
