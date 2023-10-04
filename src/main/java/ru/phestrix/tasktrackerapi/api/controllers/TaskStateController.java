@@ -5,12 +5,17 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import ru.phestrix.tasktrackerapi.api.controllers.helper.ControllerHelper;
 import ru.phestrix.tasktrackerapi.api.dto.TaskDTO;
+import ru.phestrix.tasktrackerapi.api.dto.TaskStateDTO;
 import ru.phestrix.tasktrackerapi.api.factories.TaskStateDtoFactory;
+import ru.phestrix.tasktrackerapi.storage.entities.ProjectEntity;
 import ru.phestrix.tasktrackerapi.storage.repositories.TaskStateRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,7 +24,7 @@ import java.util.List;
 public class TaskStateController {
     TaskStateRepository taskStateRepository;
     TaskStateDtoFactory taskStateDtoFactory;
-
+    ControllerHelper controllerHelper;
     public static final String GET_TASKS_STATES = "api/projects/{project_id}/tasks-states";
     public static final String CREATE_TASKS_STATE = "api/projects/{project_id}/tasks-states";
     public static final String UPDATE_TASK_STATE = "api/task-states/{task_state_id}";
@@ -27,7 +32,11 @@ public class TaskStateController {
     public static final String DELETE_TASK_STATE = "api/task-states/{task_state_id}";
 
     @GetMapping(GET_TASKS_STATES)
-    public List<TaskDTO> getTaskStates() {
-
+    public List<TaskStateDTO> getTaskStates(@PathVariable(name = "project_id") Long projectId) {
+        ProjectEntity projectEntity = controllerHelper.getProjectEntityOrThrowException(projectId);
+        return projectEntity.getTaskStates()
+                .stream()
+                .map(taskStateDtoFactory::makeTaskStateDTO)
+                .collect(Collectors.toList());
     }
 }
