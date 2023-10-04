@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @Builder
@@ -26,4 +27,8 @@ public class TaskStateDTO {
 
     @JsonProperty("right_task_state_id")
     Long rightTaskState;
+
+    @NonNull
+    List<TaskDTO> tasks;
+
 }
