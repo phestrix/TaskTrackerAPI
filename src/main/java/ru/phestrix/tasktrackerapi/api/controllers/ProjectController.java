@@ -8,11 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.phestrix.tasktrackerapi.api.controllers.helper.ControllerHelper;
 import ru.phestrix.tasktrackerapi.api.dto.AnswerDTO;
 import ru.phestrix.tasktrackerapi.api.dto.ProjectDTO;
-import ru.phestrix.tasktrackerapi.api.exceptions.NotFoundException;
+import ru.phestrix.tasktrackerapi.api.exceptions.BadRequestException;
 import ru.phestrix.tasktrackerapi.api.factories.ProjectDtoFactory;
 import ru.phestrix.tasktrackerapi.storage.entities.ProjectEntity;
 import ru.phestrix.tasktrackerapi.storage.repositories.ProjectRepository;
-import ru.phestrix.tasktrackerapi.api.exceptions.BadRequestException;
 
 import java.util.List;
 import java.util.Objects;
@@ -60,7 +59,7 @@ public class ProjectController {
             @RequestParam(value = "project_name", required = false) Optional<String> optionalProjectName
     ) {
         optionalProjectName = optionalProjectName.filter(projectName -> !projectName.trim().isEmpty());
-        boolean isCreate = !optionalProjectId.isPresent();
+        boolean isCreate = optionalProjectId.isEmpty();
 
         final ProjectEntity projectEntity = optionalProjectId
                 .map(controllerHelper::getProjectEntityOrThrowException)
