@@ -14,6 +14,9 @@ import ru.phestrix.tasktrackerapi.api.exceptions.BadRequestException;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @Transactional
@@ -24,10 +27,24 @@ public class ProjectController {
     ProjectDtoFactory projectDtoFactory;
     ProjectRepository projectRepository;
     public static final String CREATE_PROJECT = "api/projects";
+    public static final String FETCH_PROJECTS = "/api/projects";
     public static final String EDIT_PROJECT = "api/projects/{project_id}";
 
-    public List<ProjectDTO> fetchProjects(){
+    @GetMapping(FETCH_PROJECTS)
+    public List<ProjectDTO> fetchProjects(
+            @RequestParam(
+                    value = "prefix_name",
+                    required = false)
+            Optional<String> optionalPrefixName) {
+        optionalPrefixName = optionalPrefixName.filter(prefixName -> !prefixName.trim().isEmpty());
 
+        Stream<ProjectEntity> projectStream = optionalPrefixName
+                .map(projectRepository::streamAllByNameStartsWithIgnoreCase)
+                .orElseGet(projectRepository::streamAllBy);
+
+        return projectStream
+                .map(projectDtoFactory::makeProjectDto)
+                .collect(Collectors.toList());
     }
 
     @PostMapping(CREATE_PROJECT)
