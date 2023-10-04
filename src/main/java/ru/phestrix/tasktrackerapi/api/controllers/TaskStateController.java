@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 import ru.phestrix.tasktrackerapi.api.controllers.helper.ControllerHelper;
-import ru.phestrix.tasktrackerapi.api.dto.TaskDTO;
 import ru.phestrix.tasktrackerapi.api.dto.TaskStateDTO;
 import ru.phestrix.tasktrackerapi.api.exceptions.BadRequestException;
 import ru.phestrix.tasktrackerapi.api.factories.TaskStateDtoFactory;
@@ -45,7 +44,7 @@ public class TaskStateController {
     public TaskStateDTO createTaskState(
             @PathVariable(name = "project_id") Long projectId,
             @RequestParam(name = "task_state_name") String taskStateName
-    ){
+    ) {
         if (taskStateName.trim().isEmpty()) {
             throw new BadRequestException("Task state name can't be empty.");
         }
@@ -54,7 +53,7 @@ public class TaskStateController {
 
         Optional<TaskStateEntity> optionalAnotherTaskState = Optional.empty();
 
-        for (TaskStateEntity taskState: project.getTaskStates()) {
+        for (TaskStateEntity taskState : project.getTaskStates()) {
 
             if (taskState.getName().equalsIgnoreCase(taskStateName)) {
                 throw new BadRequestException(String.format("Task state \"%s\" already exists.", taskStateName));
@@ -86,5 +85,33 @@ public class TaskStateController {
         final TaskStateEntity savedTaskState = taskStateRepository.saveAndFlush(taskState);
 
         return taskStateDtoFactory.makeTaskStateDTO(savedTaskState);
+    }
+
+    @PatchMapping(UPDATE_TASK_STATE)
+    public TaskStateDTO updateTaskState(
+            @PathVariable(name = "task_state_id") Long taskStateId,
+            @RequestParam(name = "task_state_name") String taskStateName) {
+
+        if (taskStateName.trim().isEmpty()) {
+            throw new BadRequestException("Task state name can't be empty.");
+        }
+
+        TaskStateEntity taskState = controllerHelper.getTaskStateEntityOrThrowException(taskStateId);
+
+        taskStateRepository
+                .findTaskStateEntityByProjectIdAndNameContainsIgnoreCase(
+                        taskState.getProject().getId(),
+                        taskStateName
+                )
+                .filter(anotherTaskState -> !anotherTaskState.getId().equals(taskStateId))
+                .ifPresent(anotherTaskState -> {
+                    throw new BadRequestException(String.format("Task state \"%s\" already exists.", taskStateName));
+                });
+
+        taskState.setName(taskStateName);
+
+        taskState = taskStateRepository.saveAndFlush(taskState);
+
+        return taskStateDtoFactory.makeTaskStateDTO(taskState);
     }
 }
