@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 import ru.phestrix.tasktrackerapi.api.controllers.helper.ControllerHelper;
+import ru.phestrix.tasktrackerapi.api.dto.AnswerDTO;
 import ru.phestrix.tasktrackerapi.api.dto.TaskStateDTO;
 import ru.phestrix.tasktrackerapi.api.exceptions.BadRequestException;
 import ru.phestrix.tasktrackerapi.api.factories.TaskStateDtoFactory;
@@ -220,4 +221,16 @@ public class TaskStateController {
                 });
     }
 
+
+    @DeleteMapping(DELETE_TASK_STATE)
+    public AnswerDTO deleteTaskState(@PathVariable(name = "task_state_id") Long taskStateId) {
+
+        TaskStateEntity changeTaskState = controllerHelper.getTaskStateEntityOrThrowException(taskStateId);
+
+        replaceOldTaskStatePosition(changeTaskState);
+
+        taskStateRepository.delete(changeTaskState);
+
+        return AnswerDTO.builder().answer(true).build();
+    }
 }
