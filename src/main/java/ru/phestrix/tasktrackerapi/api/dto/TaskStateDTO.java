@@ -21,4 +21,10 @@ public class TaskStateDTO {
     @NonNull
     @JsonProperty("created_at")
     Instant createdAt;
+
+    @JsonProperty("left_task_state_id")
+    Long leftTaskState;
+
+    @JsonProperty("right_task_state_id")
+    Long rightTaskState;
 }
