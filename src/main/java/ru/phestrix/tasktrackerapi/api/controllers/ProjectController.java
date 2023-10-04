@@ -4,14 +4,16 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.phestrix.tasktrackerapi.api.dto.ProjectDTO;
+import ru.phestrix.tasktrackerapi.api.exceptions.NotFoundException;
 import ru.phestrix.tasktrackerapi.api.factories.ProjectDtoFactory;
 import ru.phestrix.tasktrackerapi.storage.entities.ProjectEntity;
 import ru.phestrix.tasktrackerapi.storage.repositories.ProjectRepository;
 import ru.phestrix.tasktrackerapi.api.exceptions.BadRequestException;
+
+import java.util.List;
+import java.util.Objects;
 
 @RestController
 @Transactional
@@ -22,6 +24,11 @@ public class ProjectController {
     ProjectDtoFactory projectDtoFactory;
     ProjectRepository projectRepository;
     public static final String CREATE_PROJECT = "api/projects";
+    public static final String EDIT_PROJECT = "api/projects/{project_id}";
+
+    public List<ProjectDTO> fetchProjects(){
+
+    }
 
     @PostMapping(CREATE_PROJECT)
     public ProjectDTO createProject(@RequestParam String name) {
@@ -38,5 +45,24 @@ public class ProjectController {
         return projectDtoFactory.makeProjectDTO(entity);
     }
 
+    @PatchMapping(EDIT_PROJECT)
+    public ProjectDTO editProject(
+            @PathVariable("project_id") Long projectId,
+            @RequestParam String name) {
+        if (name.trim().isEmpty()) {
+            throw new BadRequestException("name cant be empty");
+        }
 
+        ProjectEntity project = projectRepository.findById(projectId).orElseThrow(() ->
+                new NotFoundException("Project with id " + projectId + "doesn't exist"));
+
+        projectRepository.findProjectEntityByName(name)
+                .filter(anotherProject -> !Objects.equals(anotherProject.getId(), projectId))
+                .ifPresent(anotherProject -> {
+                    throw new BadRequestException("project with " + name + " already exist");
+                });
+        project.setName(name);
+        project = projectRepository.saveAndFlush(project);
+        return projectDtoFactory.makeProjectDTO(project);
+    }
 }
