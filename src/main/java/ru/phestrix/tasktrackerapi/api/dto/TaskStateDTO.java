@@ -16,8 +16,7 @@ public class TaskStateDTO {
     Long id;
     @NonNull
     String name;
-    @NonNull
-    Long ordinal;
+
     @NonNull
     @JsonProperty("created_at")
     Instant createdAt;
