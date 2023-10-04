@@ -29,6 +29,9 @@ public class TaskStateEntity {
     @Builder.Default
     Instant createdAt = Instant.now();
 
+    @ManyToOne
+    ProjectEntity project;
+
     @OneToOne
     TaskStateEntity leftTaskState;
 
