@@ -32,7 +32,6 @@ public class ProjectController {
 
     public static final String CREATE_OR_EDIT_PROJECT = "api/projects";
     public static final String FETCH_PROJECTS = "/api/projects";
-
     public static final String DELETE_PROJECT = "api/projects/{project_id}";
 
     @GetMapping(FETCH_PROJECTS)
