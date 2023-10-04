@@ -43,7 +43,7 @@ public class ProjectController {
                 .orElseGet(projectRepository::streamAllBy);
 
         return projectStream
-                .map(projectDtoFactory::makeProjectDto)
+                .map(projectDtoFactory::makeProjectDTO)
                 .collect(Collectors.toList());
     }
 
