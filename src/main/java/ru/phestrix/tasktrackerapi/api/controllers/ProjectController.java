@@ -29,6 +29,8 @@ public class ProjectController {
     ProjectRepository projectRepository;
     private static final boolean SUCCESSFUL_DELETION = true;
     private static final boolean DELETION_FAILURE = false;
+
+    public static final String CREATE_OR_EDIT_PROJECT = "api/projects";
     public static final String CREATE_PROJECT = "api/projects";
     public static final String FETCH_PROJECTS = "/api/projects";
     public static final String EDIT_PROJECT = "api/projects/{project_id}";
@@ -52,39 +54,33 @@ public class ProjectController {
                 .collect(Collectors.toList());
     }
 
-    @PostMapping(CREATE_PROJECT)
-    public ProjectDTO createProject(@RequestParam String name) {
-        projectRepository.findProjectEntityByName(name)
-                .ifPresent(project -> {
-                            throw new BadRequestException("project with " + name + " already exist");
-                        }
-                );
-        ProjectEntity entity = projectRepository.saveAndFlush(
-                ProjectEntity.builder()
-                        .name(name)
-                        .build()
-        );
-        return projectDtoFactory.makeProjectDTO(entity);
-    }
+    @PutMapping(CREATE_OR_EDIT_PROJECT)
+    public ProjectDTO createOrUpdateProject(
+            @RequestParam(value = "project_id", required = false) Optional<Long> optionalProjectId,
+            @RequestParam(value = "project_name", required = false) Optional<String> optionalProjectName
+    ) {
+        optionalProjectName = optionalProjectName.filter(projectName -> !projectName.trim().isEmpty());
+        boolean isCreate = !optionalProjectId.isPresent();
 
-    @PatchMapping(EDIT_PROJECT)
-    public ProjectDTO editProject(
-            @PathVariable("project_id") Long projectId,
-            @RequestParam String name) {
-        if (name.trim().isEmpty()) {
-            throw new BadRequestException("name cant be empty");
+        final ProjectEntity projectEntity = optionalProjectId
+                .map(this::getProjectEntityOrThrowException)
+                .orElseGet(() -> ProjectEntity.builder().build());
+
+        if (isCreate && optionalProjectName.isEmpty()) {
+            throw new BadRequestException("Project name cant be empty");
         }
 
-        ProjectEntity project = getProjectEntityOrThrowException(projectId);
-
-        projectRepository.findProjectEntityByName(name)
-                .filter(anotherProject -> !Objects.equals(anotherProject.getId(), projectId))
-                .ifPresent(anotherProject -> {
-                    throw new BadRequestException("project with " + name + " already exist");
-                });
-        project.setName(name);
-        project = projectRepository.saveAndFlush(project);
-        return projectDtoFactory.makeProjectDTO(project);
+        optionalProjectName.ifPresent(projectName -> {
+            projectRepository
+                    .findProjectEntityByName(projectName)
+                    .filter(anotherProject -> Objects.equals(anotherProject.getName(), projectName))
+                    .ifPresent(anotherProject -> {
+                        throw new BadRequestException("Project with name " + projectName + "already exist");
+                    });
+            projectEntity.setName(projectName);
+        });
+        final ProjectEntity savedProject = projectRepository.saveAndFlush(projectEntity);
+        return projectDtoFactory.makeProjectDTO(savedProject);
     }
 
     @DeleteMapping(DELETE_PROJECT)
